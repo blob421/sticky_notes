@@ -40,6 +40,7 @@ class StickyNotes(Gtk.Window):
 
         if not self.highest_id:
             save_note(title=" ", content=" ")
+            
             self.highest_id = 1
 
         self.note_ids = [key for key in self.notes.keys()]
@@ -161,7 +162,8 @@ class StickyNotes(Gtk.Window):
 
  
     def switch_note(self, direction:str, position = None, delete=False):
-        if not position:
+
+        if position is None:
              position = self.note_ids.index(self.current_note_id)
 
         if not delete:
