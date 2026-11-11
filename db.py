@@ -30,7 +30,7 @@ def init_db(cur):
                                                     )""")
     
     cur.execute("""CREATE TABLE IF NOT EXISTS metadata(last_idx INTEGER)""")
-    cur.execute("""INSERT OR IGNORE INTO metadata(last_idx) VALUES(?) WHERE rowid=1""",(1,))
+   
    
     
 @with_sqlite3
@@ -40,7 +40,7 @@ def get_notes(cur):
 
     if not data: 
        
-        return {highest_id: {'title': " ", 'content': " "}}, None
+        return {1: {'title': " ", 'content': " "}}, None
     
 
     parsed = {}
@@ -73,5 +73,8 @@ def save_note(cur, content, title, create=False, id=None):
 def get_metadata(cur):
     cur.execute("""SELECT * FROM metadata""")
     data = cur.fetchone()
-    print(data[0])
+    if not data:
+         cur.execute("""INSERT INTO metadata(last_idx) VALUES(?)""",(1,))
+         return 1
+   
     return data[0]
