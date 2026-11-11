@@ -1,0 +1,21 @@
+entry,
+textview,
+textview text {
+    background-color: transparent;
+    background-image: none;
+    caret-color: #51452B;
+    border: none;
+    box-shadow: none;
+}
+
+entry { 
+    font-size: 46px; padding-bottom: 15px; color: black;
+
+}
+
+textview{
+    font-size: 20px;
+}
+textview text{
+    color: #51452B;
+}
