@@ -52,7 +52,9 @@ class StickyNotes(Gtk.Window):
         self.set_skip_taskbar_hint(True)
         self.set_skip_pager_hint(True)
         self.set_decorated(False)
+        self.delete_button = None
         self.make_layout()
+      
 
         current_note = self.notes.get(self.current_note_id)
         self.populate_content(current_note.get('title'), current_note.get('content'))
@@ -89,8 +91,19 @@ class StickyNotes(Gtk.Window):
 
         for idx, label in enumerate(["⬅️", f"{self.note_ids.index(self.current_note_id) + 1} / {len(self.note_ids)}", "➡️", "+", "🔒", "❌"]):
             button = Gtk.Button(label=label)
+            context = button.get_style_context()
+
             if idx == 1:
                 self.notes_counter = button
+          
+            if not idx == 5:
+           
+                context.add_class('button_toolbar')
+            elif idx == 5:
+                self.delete_button = button
+                context.add_class('del_idle')
+
+            
             self.toolbar.pack_start(button, False, False, 0)
             self.connect_button(idx, button)
 
@@ -152,7 +165,28 @@ class StickyNotes(Gtk.Window):
             button.connect("clicked", lambda *_ : self.toggle_lock())
 
         elif idx == 5:
-            button.connect("clicked", lambda *_: self.delete_note())
+            button.connect("clicked", lambda *_: self.handle_delete())
+
+
+    def handle_delete(self, reset=False):
+        
+        context = self.delete_button.get_style_context()
+
+        if reset:
+            if context.has_class("del_clicked"):
+                context.remove_class("del_clicked")
+                context.add_class('del_idle')
+
+        elif not context.has_class("del_clicked"):
+            context.add_class("del_clicked")
+            context.remove_class('del_idle')
+            GLib.timeout_add_seconds(6, lambda *_: self.handle_delete(reset=True))
+
+        else:
+            context.add_class('del_idle')
+            context.remove_class("del_clicked")
+            self.delete_note()
+
 
     def delete_note(self):
         position = self.note_ids.index(self.current_note_id)
@@ -164,7 +198,7 @@ class StickyNotes(Gtk.Window):
 
  
     def switch_note(self, direction:str, position = None, delete=False):
-
+        
         if position is None:
              position = self.note_ids.index(self.current_note_id)
 
@@ -192,6 +226,7 @@ class StickyNotes(Gtk.Window):
         self.notes_counter.set_label(f"{new_position} / {len(self.note_ids)}")
 
         self.populate_content(new_note.get('title'), new_note.get('content'))
+        self.handle_delete(reset=True)
 
     def populate_content(self, title, content):
         self.title.set_text(title)

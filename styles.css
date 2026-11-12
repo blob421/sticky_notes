@@ -9,7 +9,7 @@ textview text {
 }
 
 entry { 
-    font-size: 46px; padding-bottom: 15px; color: rgb(35, 24, 15);
+    font-size: 46px; padding-bottom: 13px; color: rgb(35, 24, 15);
     padding-left: 0; margin-left: 0;
     
 
@@ -21,12 +21,19 @@ textview{
 textview text{
     color: #533f28;
 }
-button {
+button.button_toolbar {
     background-color: #51452B; background: #7e6a4c;
     border: 2px solid black; border-radius: 5px;
 }
 
-
+button.del_idle {
+    background-color: #51452B; background: #7e6a4c;
+    border: 2px solid black; border-radius: 5px;
+}
+button.del_clicked{
+    background: rgb(214, 127, 127) ; background-color: rgb(234, 136, 136);
+    border: 2px solid black; border-radius: 5px;
+}
 trough {
    
     border-radius: 6px;
