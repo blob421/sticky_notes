@@ -272,26 +272,15 @@ class StickyNotes(Gtk.Window):
 
         if not delete:
             self.auto_save()
-
-        if direction == 'r':
-           if position == len(self.note_ids) - 1:
-              self.current_note_id = self.note_ids[0]
-              new_position = 1
-           else:
-               self.current_note_id = self.note_ids[position + 1]
-               new_position = position + 2
-        
-        if direction == 'l':
-            if position == 0:
-                new_position = len(self.note_ids)
-                self.current_note_id = self.note_ids[-1]
-            else:
-                self.current_note_id = self.note_ids[position - 1]
-                new_position = position
+  
+        ### MAKING THE ROTATION WITH MODULO 
+        offset = -1 if direction == 'l' else 1
+        new_position = (position + offset + len(self.note_ids)) % len(self.note_ids)
+        self.current_note_id = self.note_ids[new_position]
    
         new_note = self.notes.get(self.current_note_id)
 
-        self.notes_counter.set_label(f"{new_position} / {len(self.note_ids)}")
+        self.notes_counter.set_label(f"{new_position + 1} / {len(self.note_ids)}")
 
         self.populate_content(new_note.get('title'), new_note.get('content'))
         self.handle_delete(reset=True)
