@@ -44,13 +44,14 @@ class StickyNotes(Gtk.Window):
 
         self.undo_stack = []
         self.redo_stack = []
+        self.timer_id = None
         self.stack_used = False
         self.note_ids = [key for key in self.notes.keys()]
         self.locked = True
         self.current_note_id = get_metadata()
         self.set_default_size(450, 700)
         self.move(x - 450, y)
-        GLib.timeout_add_seconds(20, self.auto_save)
+        self.timer_id = GLib.timeout_add_seconds(20, self.auto_save)
         self.set_skip_taskbar_hint(True)
         self.set_skip_pager_hint(True)
         self.set_decorated(False)
@@ -173,10 +174,15 @@ class StickyNotes(Gtk.Window):
 
         # Text editor
         self.scrollable = Gtk.ScrolledWindow()
-        
+
+        self.scrollable.set_policy(
+            Gtk.PolicyType.NEVER,       # Horizontal
+            Gtk.PolicyType.AUTOMATIC    # Vertical
+        )      
+
         self.editor = Gtk.TextView()
        
-        self.editor.set_wrap_mode(Gtk.WrapMode.WORD)
+        self.editor.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
 
         self.buffer = self.editor.get_buffer()
         self.buffer.connect("changed", self.on_text_changed)
@@ -211,7 +217,9 @@ class StickyNotes(Gtk.Window):
 
         self.notes[self.current_note_id] = {'title': title, 'content': content}
         save_note(title=title, content=content, id=self.current_note_id)
-        GLib.timeout_add_seconds(20, self.auto_save)
+        
+        GLib.source_remove(self.timer_id)
+        self.timer_id = GLib.timeout_add_seconds(20, self.auto_save)
     
     def connect_button(self, idx, button):
         if idx in (0, 2):
