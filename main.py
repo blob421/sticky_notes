@@ -6,7 +6,6 @@ from gi.repository import Gtk, Gdk, GLib
 from db import init_db, save_note, get_notes, get_metadata, delete_note
 
 
-
 init_db()
 CURRENT_DIR = os.path.dirname(__file__)
 
@@ -43,6 +42,9 @@ class StickyNotes(Gtk.Window):
             
             self.highest_id = 1
 
+        self.undo_stack = []
+        self.redo_stack = []
+        self.stack_used = False
         self.note_ids = [key for key in self.notes.keys()]
         self.locked = True
         self.current_note_id = get_metadata()
@@ -53,15 +55,70 @@ class StickyNotes(Gtk.Window):
         self.set_skip_pager_hint(True)
         self.set_decorated(False)
         self.delete_button = None
+        self.buffer = None
         self.make_layout()
+    
       
 
         current_note = self.notes.get(self.current_note_id)
         self.populate_content(current_note.get('title'), current_note.get('content'))
+        
        # self.set_keep_below(True)
         # Overlay: background and foreground
-   
+        self.make_shortcuts()
 
+    def make_shortcuts(self):
+        accel_group = Gtk.AccelGroup()
+        self.add_accel_group(accel_group)
+        accel_group.connect(Gdk.KEY_z, Gdk.ModifierType.CONTROL_MASK,
+            Gtk.AccelFlags.VISIBLE, self.undo
+        )
+
+        accel_group.connect(
+            Gdk.KEY_y, Gdk.ModifierType.CONTROL_MASK, Gtk.AccelFlags.VISIBLE, self.redo
+        ) 
+    def on_text_changed(self, *args):
+        if self.stack_used: return 
+
+        text = self.get_text()
+        self.undo_stack.append(text)
+        self.undo_stack = self.undo_stack[-300:]
+        self.notes[self.current_note_id] = text
+       
+    def get_text(self):
+        start = self.buffer.get_start_iter()
+        end = self.buffer.get_end_iter() 
+        text = self.buffer.get_text(start, end, True)
+  
+        return text
+    #[1 , 2]
+    #[3]
+    def undo(self, *args):
+        length = len(self.undo_stack)
+
+        if length == 1: 
+            return
+            
+        elif length > 0:
+            self.stack_used = True
+            
+            self.redo_stack.append(self.undo_stack.pop())
+            text = self.undo_stack[-1]
+
+            self.buffer.set_text(text)
+            self.stack_used = False
+
+    def redo(self, *args):
+        
+        if len(self.redo_stack) > 0:
+            
+            self.stack_used = True
+
+
+            text = self.redo_stack.pop()
+            self.undo_stack.append(text)
+            self.buffer.set_text(text)
+            self.stack_used = False
 
     def make_layout(self):
         overlay = Gtk.Overlay()
@@ -120,6 +177,10 @@ class StickyNotes(Gtk.Window):
         self.editor = Gtk.TextView()
        
         self.editor.set_wrap_mode(Gtk.WrapMode.WORD)
+
+        self.buffer = self.editor.get_buffer()
+        self.buffer.connect("changed", self.on_text_changed)
+
         self.scrollable.add(self.editor)
 
 
@@ -134,20 +195,19 @@ class StickyNotes(Gtk.Window):
         self.note_ids.append(last_id + 1)
         self.current_note_id = last_id + 1
         self.title.set_text("")
-        buffer = self.editor.get_buffer()
-        buffer.set_text("")
+       
+        self.buffer.set_text("")
         
         self.notes_counter.set_label(f"{len(self.note_ids)} / {len(self.note_ids)}")
         save_note(content=" ", title=" ", create=True, id=self.current_note_id)
+        self.undo_stack = [""]
+        self.redo_stack = []
      
     def auto_save(self):
         
         title = self.title.get_text()
-         
-        buffer = self.editor.get_buffer()
-        start = buffer.get_start_iter()
-        end = buffer.get_end_iter()
-        content = buffer.get_text(start, end, True)
+    
+        content = self.get_text()
 
         self.notes[self.current_note_id] = {'title': title, 'content': content}
         save_note(title=title, content=content, id=self.current_note_id)
@@ -229,8 +289,17 @@ class StickyNotes(Gtk.Window):
         self.handle_delete(reset=True)
 
     def populate_content(self, title, content):
+  
+        self.stack_used = True
+
         self.title.set_text(title)
-        self.editor.get_buffer().set_text(content)
+       
+        self.buffer.set_text(content)
+        self.redo_stack = []
+        self.undo_stack = [content]
+        self.stack_used = False
+  
+    
 
     def toggle_lock(self):
 
