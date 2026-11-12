@@ -44,7 +44,7 @@ class StickyNotes(Gtk.Window):
             self.highest_id = 1
 
         self.note_ids = [key for key in self.notes.keys()]
-        self.locked = False
+        self.locked = True
         self.current_note_id = get_metadata()
         self.set_default_size(450, 700)
         self.move(x - 450, y)
@@ -82,12 +82,12 @@ class StickyNotes(Gtk.Window):
         # Toolbar
         self.toolbar = Gtk.Box(
             orientation=Gtk.Orientation.HORIZONTAL,
-            spacing=8
+            spacing=7
         )
 
         content.pack_start(self.toolbar, False, False, 0)
 
-        for idx, label in enumerate(["‹", f"{self.note_ids.index(self.current_note_id) + 1} / {len(self.note_ids)}", "›", "+", "🔒", "❌"]):
+        for idx, label in enumerate(["⬅️", f"{self.note_ids.index(self.current_note_id) + 1} / {len(self.note_ids)}", "➡️", "+", "🔒", "❌"]):
             button = Gtk.Button(label=label)
             if idx == 1:
                 self.notes_counter = button
@@ -99,16 +99,18 @@ class StickyNotes(Gtk.Window):
         self.title.set_name("note-title")
         self.title.set_placeholder_text('Title...')
 
-        content.pack_start(self.title, False, False, 0)
+        content.pack_start(self.title, False, True, 0)
 
         # Text editor
+        self.scrollable = Gtk.ScrolledWindow()
+        
         self.editor = Gtk.TextView()
        
         self.editor.set_wrap_mode(Gtk.WrapMode.WORD)
-    
+        self.scrollable.add(self.editor)
 
 
-        content.pack_start(self.editor, True, True, 0)
+        content.pack_start(self.scrollable, True, True, 0)
 
         self.connect("destroy", Gtk.main_quit)
 

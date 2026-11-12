@@ -9,7 +9,9 @@ textview text {
 }
 
 entry { 
-    font-size: 46px; padding-bottom: 15px; color: black;
+    font-size: 46px; padding-bottom: 15px; color: rgb(35, 24, 15);
+    padding-left: 0; margin-left: 0;
+    
 
 }
 
@@ -17,5 +19,21 @@ textview{
     font-size: 20px;
 }
 textview text{
-    color: #51452B;
+    color: #533f28;
+}
+button {
+    background-color: #51452B; background: #7e6a4c;
+    border: 2px solid black; border-radius: 5px;
+}
+
+
+trough {
+   
+    border-radius: 6px;
+    background-color: #7e6a4c;
+    
+}
+
+trough slider {
+    background: white;
 }
